@@ -3,6 +3,12 @@ from flask_jwt_extended import jwt_required, get_jwt
 from datetime import datetime
 import uuid
 import os
+from backend.utils.llm_analyzer import (
+    analyze_resume_job_match,
+    extract_skills_from_resume,
+    generate_resume_feedback,
+    get_skill_gap_visualization
+)
 
 api_bp = Blueprint('api', __name__)
 
@@ -173,3 +179,122 @@ def analytics_overview():
     }
     
     return api_response(data=analytics)
+
+
+# ============================================================
+# NEW ENDPOINTS: Resume-Job Match Analysis with LLM
+# ============================================================
+
+@api_bp.route('/analyze/match', methods=['POST'])
+@jwt_required(optional=True)
+def analyze_match():
+    """
+    Analyze resume against job description using LLM
+    Returns: match_score (0-100), strengths, missing_skills, explanation
+    """
+    data = request.json
+    resume_text = data.get('resumeText', '')
+    job_description = data.get('jobDescription', '')
+    
+    if not resume_text or not job_description:
+        return api_response(
+            success=False,
+            message='resumeText and jobDescription are required',
+            status_code=400
+        )
+    
+    try:
+        analysis = analyze_resume_job_match(resume_text, job_description)
+        return api_response(data=analysis, message='Analysis complete')
+    except Exception as e:
+        return api_response(
+            success=False,
+            message=f'Analysis failed: {str(e)}',
+            status_code=500
+        )
+
+
+@api_bp.route('/analyze/skills', methods=['POST'])
+@jwt_required(optional=True)
+def extract_skills():
+    """
+    Extract and categorize skills from resume using LLM
+    Returns: tech_skills, soft_skills, tools
+    """
+    data = request.json
+    resume_text = data.get('resumeText', '')
+    
+    if not resume_text:
+        return api_response(
+            success=False,
+            message='resumeText is required',
+            status_code=400
+        )
+    
+    try:
+        skills = extract_skills_from_resume(resume_text)
+        return api_response(data=skills, message='Skills extracted')
+    except Exception as e:
+        return api_response(
+            success=False,
+            message=f'Skills extraction failed: {str(e)}',
+            status_code=500
+        )
+
+
+@api_bp.route('/analyze/feedback', methods=['POST'])
+@jwt_required(optional=True)
+def resume_feedback():
+    """
+    Generate actionable feedback to improve resume
+    Returns: better_bullets, ats_suggestions, general_feedback
+    """
+    data = request.json
+    resume_text = data.get('resumeText', '')
+    job_title = data.get('jobTitle', '')
+    
+    if not resume_text:
+        return api_response(
+            success=False,
+            message='resumeText is required',
+            status_code=400
+        )
+    
+    try:
+        feedback = generate_resume_feedback(resume_text, job_title)
+        return api_response(data=feedback, message='Feedback generated')
+    except Exception as e:
+        return api_response(
+            success=False,
+            message=f'Feedback generation failed: {str(e)}',
+            status_code=500
+        )
+
+
+@api_bp.route('/analyze/skill-gap', methods=['POST'])
+@jwt_required(optional=True)
+def skill_gap():
+    """
+    Create skill gap visualization
+    Returns: list of skills with status (present/missing) and icons
+    """
+    data = request.json
+    required_skills = data.get('requiredSkills', [])
+    candidate_skills = data.get('candidateSkills', [])
+    
+    if not required_skills or not candidate_skills:
+        return api_response(
+            success=False,
+            message='requiredSkills and candidateSkills arrays are required',
+            status_code=400
+        )
+    
+    try:
+        gap = get_skill_gap_visualization(required_skills, candidate_skills)
+        return api_response(data={'skillGap': gap}, message='Skill gap analysis complete')
+    except Exception as e:
+        return api_response(
+            success=False,
+            message=f'Skill gap analysis failed: {str(e)}',
+            status_code=500
+        )
