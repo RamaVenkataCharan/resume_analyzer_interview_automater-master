@@ -1,31 +1,48 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface TestimonialProps {
   name: string;
   role: string;
   content: string;
   avatar: string;
+  index?: number;
 }
 
-const Testimonial: React.FC<TestimonialProps> = ({ name, role, content, avatar }) => {
+const Testimonial: React.FC<TestimonialProps> = ({ name, role, content, avatar, index = 0 }) => {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-      <div className="flex items-center mb-4">
-        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-2xl mr-4">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className="glass-card p-8 rounded-2xl relative"
+    >
+      <div className="absolute top-0 right-0 p-8 text-6xl text-slate-800/50 font-serif leading-none opacity-50">"</div>
+      
+      <div className="flex items-center mb-6 relative z-10">
+        <div className="w-14 h-14 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-2xl mr-4 shadow-inner">
           {avatar}
         </div>
         <div>
-          <h4 className="font-semibold text-gray-900">{name}</h4>
-          <p className="text-sm text-gray-600">{role}</p>
+          <h4 className="font-semibold text-slate-100">{name}</h4>
+          <p className="text-sm text-slate-400">{role}</p>
         </div>
       </div>
-      <p className="text-gray-700 italic">"{content}"</p>
-      <div className="flex mt-4 text-yellow-400">
+      <p className="text-slate-300 italic relative z-10 leading-relaxed text-lg">"{content}"</p>
+      <div className="flex mt-6 text-indigo-400 relative z-10 gap-1">
         {'★★★★★'.split('').map((star, i) => (
-          <span key={i}>{star}</span>
+          <motion.span 
+            key={i}
+            initial={{ opacity: 0, scale: 0 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 + (i * 0.1) }}
+          >
+            {star}
+          </motion.span>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
