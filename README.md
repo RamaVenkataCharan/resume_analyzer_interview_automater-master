@@ -28,6 +28,7 @@ An AI-powered tool designed to help job seekers improve their resumes and prepar
 
 ## 🎯 Use Cases
 
+
 - Students preparing for placements
 - Job seekers improving resumes
 - Mock interview practice
